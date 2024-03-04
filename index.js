@@ -26,11 +26,12 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   plugins: [ApolloServerPluginLandingPageLocalDefault({ embed: true })],
+  
   context: ({ req, res }) => {
     const token = req.headers.token || "";
     // console.log("token : " + token);
     if (!token) return new Error("Not authenticated");
-    
+
     try {
       const user = jwt.verify(token, process.env.JWT_SECRET, (err, res) => {
         if (err) {
@@ -40,7 +41,8 @@ const server = new ApolloServer({
         }
         return res;
       });
-      console.log("🚀 ~index file user ~ user:", user);
+      // console.log("🚀 ~index file user ~ user:", user);
+
       // if (user === "token expired") {
       //   return res.json({ status: "error", data: "token expired" });
       // }

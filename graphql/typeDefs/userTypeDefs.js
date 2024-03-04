@@ -108,9 +108,9 @@ const userTypeDefs = gql`
     accessToken: String
   }
 
-  # input uploadProfileInput {
-  #   url: String
-  # }
+  input uploadProfileInput {
+    url: String
+  }
 
   type uploadProfileOutput {
     url: String
@@ -141,7 +141,8 @@ const userTypeDefs = gql`
     verifyUser(token: String!): status
     forgotPassword(email: String!): User
     confirmPassword(token: String!, input: confirmPasswordInput!): User
-    uploadProfilePhoto(url: String!): User
+    uploadProfilePhoto(input: uploadProfileInput!): User
+    tokenExpireAndSendLink(email: String): User
   }
 `;
 

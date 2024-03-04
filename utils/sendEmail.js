@@ -8,12 +8,12 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-function sendWelcomeEmail({ email, url }) {
+function sendWelcomeEmail({ email, url, subject }) {
   //   const text = "http://127.0.0.1:5173" + url;
   const mailOptions = {
     from: "vasudhapatoliya502@gmail.com",
     to: email,
-    subject: "verification email",
+    subject: subject,
     text: `http://localhost:5173/${url}`,
   };
 
@@ -26,7 +26,7 @@ function sendUpdateEmail({ email, newObject }) {
   const mailOptions = {
     from: "vasudhapatoliya502@gmail.com",
     to: email,
-    subject: "verification email",
+    subject: "Update Info By Admin",
     text: newObject.split(", ").join("\n"),
   };
 

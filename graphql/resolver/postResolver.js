@@ -54,15 +54,15 @@ const getAllPost = combineResolvers(
         return new Error("Post not available");
       }
 
-      return {
-        docs: populatedPosts,
-        totalDocs: allPostData.totalDocs,
-        limit: allPostData.limit,
-        totalPages: allPostData.totalPages,
-        page: allPostData.page,
-        nextPage: allPostData.nextPage,
-        prevPage: allPostData.prevPage,
-      };
+      allPostData.docs = populatedPosts;
+      return allPostData;
+      // docs: populatedPosts,
+      // totalDocs: allPostData.totalDocs,
+      // limit: allPostData.limit,
+      // totalPages: allPostData.totalPages,
+      // page: allPostData.page,
+      // nextPage: allPostData.nextPage,
+      // prevPage: allPostData.prevPage,
     } catch (error) {
       console.log("🚀 ~ error:", error);
     }

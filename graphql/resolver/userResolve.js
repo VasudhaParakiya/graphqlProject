@@ -56,9 +56,10 @@ const createUser = async (_, args) => {
     const verificationToken = tokenforVerification.accessToken;
     // console.log("🚀 ~ createUser ~ verificationToken:", verificationToken);
 
-    const url = `signup/${verificationToken}`;
+    const url = `userVerify/${verificationToken}`;
+    const subject = "verification email";
 
-    sendWelcomeEmail({ email, url });
+    sendWelcomeEmail({ email, url, subject });
     return newUser;
     // Your MongoDB operation here
   } catch (error) {
@@ -70,9 +71,7 @@ const verifyUser = async (_, { token }, context) => {
   // console.log("🚀 ~ isVerified ~ context:",args.token);
   const verifiedtoken = token;
   try {
-    const decodedToken = jwt.verify(verifiedtoken, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRE,
-    });
+    const decodedToken = jwt.verify(verifiedtoken, process.env.JWT_SECRET);
 
     // console.log(decodedToken);
 
@@ -85,7 +84,9 @@ const verifyUser = async (_, { token }, context) => {
     return { isVerified: true };
   } catch (error) {
     // Handle token verification errors
-    console.error("Token verification error:", error.message);
+    console.log("Token verification error:", error.message);
+    return new Error("jwt expired");
+    // throw new ApolloError("verify token expired.", "NOTVERIFY");
   }
 };
 
@@ -126,13 +127,47 @@ const deleteUser = combineResolvers(
   }
 );
 
+const tokenExpireAndSendLink = async (_, args) => {
+  console.log("🚀 ~ tokenExpireAndSendLink ~ args:", args);
+  const email = args.email;
+  try {
+    const user = await User.findOne({ email });
+    console.log(user);
+    if (!user) return new Error("wrong email ");
+
+    const tokenforVerification = createJwtToken(user);
+    const verificationToken = tokenforVerification.accessToken;
+    console.log("🚀 ~ createUser ~ verificationToken:", verificationToken);
+
+    const url = `signup/${verificationToken}`;
+    const subject = "generate new link for verification";
+
+    sendWelcomeEmail({ email, url, subject });
+    return user;
+  } catch (error) {
+    console.log("🚀 ~ tokenExpireAndSendLink ~ error:", error);
+  }
+};
+
 const loginUser = async (_, { input }) => {
   const { email, password } = input;
   // console.log(email);
   try {
     const user = await User.findOne({ email });
-    // console.log(user);
+    console.log(user);
     if (!user) return new Error("wrong email ");
+
+    if (user.isVerified === false) {
+      const tokenforVerification = createJwtToken(user);
+      const verificationToken = tokenforVerification.accessToken;
+      console.log("🚀 ~ createUser ~ verificationToken:", verificationToken);
+
+      const url = `loginVerify/${verificationToken}`;
+      const subject = "please verify";
+
+      sendWelcomeEmail({ email, url, subject });
+      return new Error("not verified. please virify in your mail");
+    }
 
     const isMatch = await user.isPasswordCorrect(password);
     if (!isMatch) return new Error("wrong  password");
@@ -199,8 +234,9 @@ const forgotPassword = async (_, args) => {
     // console.log("🚀 ~ forgotPassword ~ verificationToken:", verificationToken);
 
     const url = `forgotPassword/${verificationToken}`;
+    const subject = "Forgot Password";
 
-    sendWelcomeEmail({ email, url });
+    sendWelcomeEmail({ email, url, subject });
 
     return user;
   } catch (error) {
@@ -217,6 +253,9 @@ const confirmPassword = async (_, args, context) => {
     if (!verifiedtoken) return "invalid token";
     if (!newPassword && !confirmPassword) {
       return "newPassword and confirmPassword must be provided";
+    }
+    if (newPassword != confirmPassword) {
+      return "newPassword and confirmPassword not match";
     }
 
     // console.log("🚀 ~ confirmPassword ~ verifiedtoken:", verifiedtoken);
@@ -325,6 +364,7 @@ const userResolver = {
     forgotPassword,
     confirmPassword,
     uploadProfilePhoto,
+    tokenExpireAndSendLink,
   },
 };
 

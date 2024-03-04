@@ -31,7 +31,7 @@ const postTypeDefs = gql`
   }
 
   type paginateOutput {
-    docs: [postResult!]!
+    docs: [postResult!]
     totalDocs: Int
     limit: Int
     totalPages: Int
