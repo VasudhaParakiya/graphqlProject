@@ -16,7 +16,7 @@ const userTypeDefs = gql`
     profile: String
     createdAt: String
     updatedAt: String
-  
+    # post: [Post!]!
   }
 
   enum Gender {
@@ -60,7 +60,14 @@ const userTypeDefs = gql`
     newPassword: String!
     confirmPassword: String!
   }
- 
+  # type postResult {
+  #   id: String!
+  #   title: String
+  #   description: String
+  #   createdBy: User
+  #   createdAt: String
+  #   updatedAt: String
+  # }
   type profileResult {
     id: String!
     firstName: String
@@ -82,7 +89,10 @@ const userTypeDefs = gql`
     password: String!
   }
 
-  
+  # type loginResult {
+  #   accessToken: String
+  #   message: String
+  # }
 
   type loginResult {
     id: String

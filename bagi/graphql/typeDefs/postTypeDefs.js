@@ -6,6 +6,10 @@ const postTypeDefs = gql`
     title: String
     description: String
     createdBy: String
+    # likes: Number
+    # publishDate: String
+    # likes: [Like!]
+    # comments: [Comment!]
   }
 
   input createPostInput {
@@ -23,8 +27,8 @@ const postTypeDefs = gql`
     title: String
     description: String
     createdBy: User
-    likeCount: Int
-    commentCount: Int
+    likes: Int
+    comments: Int
   }
 
   input paginateInput {
@@ -33,6 +37,8 @@ const postTypeDefs = gql`
   }
 
   type paginateOutput {
+    # comments: Int
+    # likes: Int
     docs: [postResult!]
     totalDocs: Int
     limit: Int
@@ -45,13 +51,14 @@ const postTypeDefs = gql`
   }
 
   type Query {
+    # getAllPost: [postResult!]!
     getSinglePost(id: String!): postResult!
     getAllPost(input: paginateInput!): paginateOutput
   }
 
   type Mutation {
     createPost(input: createPostInput!): Post
-
+    # updatePost(input: updatePostInput!): Post
     updatePost(id: String!, input: updatePostInput!): Post
     deletePost(id: String!): deleteMsg
   }

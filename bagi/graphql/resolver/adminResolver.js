@@ -86,7 +86,11 @@ const getAllPostByAdmin = combineResolvers(
       };
 
       const allPostData = await Post.paginate({}, options);
-     
+      // console.log("🚀 ~ allPostData:", allPostData);
+
+      // Extract documents from pagination result
+      // const posts = allPostData.docs;
+
       const populatedPosts = await Post.populate(allPostData.docs, {
         path: "createdBy",
         select: "firstName",
@@ -198,7 +202,11 @@ const getAllPostOneUserByAdmin = combineResolvers(
         nextPage: allPostData.nextPage,
         prevPage: allPostData.prevPage,
       };
-     
+      // const postData = await Post.find({ createdBy: args.id }).populate({
+      //   path: "createdBy",
+      //   select: "firstName",
+      // });
+      // console.log("🚀 ~ postData:", postData);
     } catch (error) {
       console.log("🚀 ~ error:", error);
     }

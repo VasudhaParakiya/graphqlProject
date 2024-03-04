@@ -22,6 +22,20 @@ const postSchema = new mongoose.Schema(
       type: Date,
       default: new Date(),
     },
+    likes: {
+      type: Number,
+    },
+    // likes: [
+    //   {
+    //     postLike: {
+    //       type: mongoose.Schema.Types.ObjectId,
+    //       ref: "PostLikes",
+    //     },
+    //   },
+    // ],
+    comments: {
+      type: Number,
+    },
   },
   {
     timestamps: true,

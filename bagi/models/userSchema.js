@@ -49,7 +49,6 @@ const userSchema = new mongoose.Schema(
     },
     dateOfBirth: {
       type: Date,
-      default: new Date(),
     },
     profile: String,
     // posts: [

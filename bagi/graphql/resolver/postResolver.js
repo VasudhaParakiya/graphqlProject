@@ -3,8 +3,6 @@ const PostComments = require("../../models/commentsSchema");
 const PostLikes = require("../../models/postLikeSchema");
 const Post = require("../../models/postSchema");
 const { combineResolvers } = require("graphql-resolvers");
-const User = require("../../models/userSchema");
-const PostCommentsLikes = require("../../models/commentsLikeSchema");
 
 // create post
 const createPost = combineResolvers(
@@ -34,94 +32,65 @@ const getAllPost = combineResolvers(
 
     const { page, limit } = input;
     try {
-      const combinedResult = await PostLikes.aggregate([
-        {
-          $group: {
-            _id: "$postId",
-            likeCount: { $sum: 1 },
-          },
-        },
-        {
-          $lookup: {
-            from: "postcomments",
-            localField: "_id",
-            foreignField: "postId",
-            as: "comments",
-          },
-        },
-        {
-          $addFields: {
-            commentCount: { $size: "$comments" },
-          },
-        },
-        // {
-        //   $addFields: {
-        //     totalLikeAndCommentCount: { $add: ["$commentCount", "$likeCount"] }, // Calculate the total comment count and like count
-        //   },
-        // },
-        // {
-        //   $sort: { totalLikeAndCommentCount: 1 },
-        // },
-        // {
-        //   $lookup: {
-        //     from: "users",
-        //     localField: "userId",
-        //     foreignField: "_id",
-        //     as: "creator",
-        //   },
-        // },
-        // {
-        //   $addFields: {
-        //     totalCommentCount: { $add: ["$commentCount", "$totalReplyCount"] }, // Calculate the total comment count
-        //   },
-        // },
-        {
-          $project: {
-            _id: 1,
-            likeCount: 1,
-            commentCount: 1,
-            // createdBy: { $arrayElemAt: ["$creator.firstName", 0] },
-          },
-        },
-      ]);
-      console.log("🚀 ~ combinedResult:", combinedResult);
+      // const newPosts = await Post.find({}).populate("likeCount");
+      // console.log("🚀 ~ newPosts:", newPosts);
 
       const options = {
         page: page || 1,
         limit: limit || 34,
+        sort: { title: 1 },
         lean: true,
-        populate: [
-          {
-            path: "createdBy",
-            select: "firstName",
-          },
-        ],
+        populate: ["likeCount", "commentCount"],
+
+        // select: 'name email',
+        // collation: { locale: 'en' }
       };
 
       const allPostData = await Post.paginate({}, options);
+      // console.log("🚀 ~ allPostData:", allPostData);
 
-      // Map through allPostData.docs and assign the appropriate likeCount
-      const newData = allPostData.docs.map((data) => {
-        const combinedItem = combinedResult.find(
-          (item) => item._id.toString() === data._id.toString()
-        );
-        data.likeCount = combinedItem ? combinedItem.likeCount : 0;
-        data.commentCount = combinedItem ? combinedItem.commentCount : 0;
-
-        // data.createdBy = data.createdBy.firstName; // Assuming createdBy is already populated
-
-        return data;
+      const posts = await Post.populate(allPostData.docs, {
+        path: "createdBy",
+        select: "firstName",
       });
+      // console.log("🚀 ~ posts:", posts);
 
-      //Sort based on the sum of likeCount and commentCount
-      newData.sort(
-        (a, b) => b.likeCount + b.commentCount - (a.likeCount + a.commentCount)
+      const postData = await Promise.all(
+        posts.map(async (post, i) => {
+          // console.log("🚀 ~ posts.map ~ post:", post);
+          //     // post like count
+          //     // const likeData = await PostLikes.find({ postId: post._id });
+          //     // const likeCount = likeData.length;
+          //     // // Adding the count property to the post object
+          //     // post.likes = likeCount;
+          //post comment count
+          // const commentData = await PostComments.find({ postId: post._id });
+          // // console.log("🚀 ~ posts.map ~ commentData:", commentData);
+          // const commentCount = commentData.length;
+          // // Adding the count property to the post object
+          // post.comments = commentCount;
+          // post.comments = post.commentCount;
+          // const commentCount = post.commentCount || 0;
+          // const likeCount = post.likeCount;
+          // console.log("🚀 ~ posts.map ~ commentCount:", post.commentCount)
+
+          post.comments = post.commentCount;
+
+          //Check if likeCount is populated
+          if (post.likeCount) {
+            post.likes = post.likeCount;
+          } else {
+            post.likes = 0; // or any default value you prefer
+          }
+
+          return post; // Return the modified post
+        })
       );
 
-      // console.log("🚀 ~ newData:", newData);
-
+      // allPostData.docs = populatedPosts;
       return {
-        docs: newData,
+        docs: postData,
+        // docs: populatedPosts,
         totalDocs: allPostData.totalDocs,
         limit: allPostData.limit,
         totalPages: allPostData.totalPages,
@@ -137,6 +106,7 @@ const getAllPost = combineResolvers(
 
 // get single Post
 const getSinglePost = combineResolvers(async (_, args, { user }) => {
+  // console.log("gjhkjkjkjk");
   try {
     const postData = await Post.findOne({
       createdBy: user._id,
@@ -181,17 +151,14 @@ const updatePost = combineResolvers(
 const deletePost = combineResolvers(
   isAuthenticated,
   async (_, args, { user }) => {
-    console.log("🚀 ~ args:", args);
+    console.log("🚀 ~ args:", args.id);
     try {
-      const deleteComment = await PostComments.deleteMany({ postId: args.id });
       const deletePost = await Post.findByIdAndDelete({
         createdBy: user._id,
         _id: args.id,
       });
 
-      if (!deleteComment) return new Error("comments not found");
-
-      if (!deletePost) return new Error("post not found");
+      if (!deletePost) return new Error("user not found");
       return { message: "delete" };
     } catch (error) {
       console.error(error);
@@ -206,6 +173,8 @@ const postResolver = {
   Query: {
     getAllPost,
     getSinglePost,
+    // getPaginated
+    // paginate,
   },
   Mutation: {
     createPost,
