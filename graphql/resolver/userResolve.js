@@ -154,13 +154,13 @@ const loginUser = async (_, { input }) => {
   // console.log(email);
   try {
     const user = await User.findOne({ email });
-    console.log(user);
+    // console.log(user);
     if (!user) return new Error("wrong email ");
 
     if (user.isVerified === false) {
       const tokenforVerification = createJwtToken(user);
       const verificationToken = tokenforVerification.accessToken;
-      console.log("🚀 ~ createUser ~ verificationToken:", verificationToken);
+      // console.log("🚀 ~ createUser ~ verificationToken:", verificationToken);
 
       const url = `loginVerify/${verificationToken}`;
       const subject = "please verify";

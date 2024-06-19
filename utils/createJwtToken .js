@@ -9,8 +9,8 @@ const createJwtToken = (user) => {
       // email: user.email,
       // role: user.role,
     },
-    process.env.JWT_SECRET,
-    { expiresIn: "10min" }
+    process.env.JWT_SECRET
+    // { expiresIn: "10min" }
   );
 
   // console.log("🚀 ~ loginUser: ~ accessToken:", accessToken);

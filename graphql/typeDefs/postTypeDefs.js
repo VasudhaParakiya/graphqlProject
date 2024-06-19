@@ -55,6 +55,15 @@ const postTypeDefs = gql`
     updatePost(id: String!, input: updatePostInput!): Post
     deletePost(id: String!): deleteMsg
   }
+
+  type PostSubscription {
+    keyType: String
+    data: Post
+  }
+
+  type Subscription {
+    newPostCreated: PostSubscription
+  }
 `;
 
 module.exports = postTypeDefs;

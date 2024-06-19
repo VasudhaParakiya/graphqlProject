@@ -2,6 +2,7 @@ const { skip } = require("graphql-resolvers");
 const User = require("../models/userSchema");
 
 const isAuthenticated = async (_, args, { user }) => {
+  // console.log("🚀 ~ isAuthenticated ~ user:", user)
   // console.log("authenticated", user);
   try {
     if (!user) {

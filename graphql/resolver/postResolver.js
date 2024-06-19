@@ -6,16 +6,32 @@ const { combineResolvers } = require("graphql-resolvers");
 const User = require("../../models/userSchema");
 const PostCommentsLikes = require("../../models/commentsLikeSchema");
 
+const { PubSub } = require("graphql-subscriptions");
+
+const pubsub = new PubSub();
+
+const EVENTS_POST_CREATE = "EVENTS_POST_CREATE";
+
 // create post
 const createPost = combineResolvers(
   isAuthenticated,
   async (_, { input }, { user }) => {
-    console.log(user);
+    // console.log(user);
     try {
       input.createdBy = user._id;
-      console.log(input.createdBy);
+      // console.log(input.createdBy);
       const postData = await Post.create(input);
+      // console.log("🚀 ~ postData:", postData);
       if (!postData) return "post not created";
+
+      pubsub.publish(
+        EVENTS_POST_CREATE,
+        {
+          newPostCreated: { keyType: "INSERT", data: postData },
+        }
+        // console.log("calllllllllllllllllllllllllllll subscription", postData)
+      );
+
       return postData;
     } catch (error) {
       console.error(error);
@@ -25,7 +41,6 @@ const createPost = combineResolvers(
     }
   }
 );
-
 // get all post
 const getAllPost = combineResolvers(
   isAuthenticated,
@@ -84,7 +99,7 @@ const getAllPost = combineResolvers(
           },
         },
       ]);
-      console.log("🚀 ~ combinedResult:", combinedResult);
+      // console.log("🚀 ~ combinedResult:", combinedResult);
 
       const options = {
         page: page || 1,
@@ -144,6 +159,7 @@ const getSinglePost = combineResolvers(async (_, args, { user }) => {
     }).populate({ path: "createdBy", select: "firstName email" });
     // console.log("postData", postData);
     if (!postData) return "post not available";
+
     return postData;
   } catch (error) {
     console.error(error);
@@ -211,6 +227,11 @@ const postResolver = {
     createPost,
     updatePost,
     deletePost,
+  },
+  Subscription: {
+    newPostCreated: {
+      subscribe: () => pubsub.asyncIterator(EVENTS_POST_CREATE),
+    },
   },
 };
 
